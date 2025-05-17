@@ -1,0 +1,103 @@
+# =================== 1. MOUNT DRIVE ===================
+from google.colab import drive
+drive.mount('/content/drive')
+
+# =================== 2. INSTALL DEPENDENCIES ===================
+#!pip install ultralytics
+#!pip install torch torchvision matplotlib
+
+# =================== 3. TRAIN YOLOv8 MODEL ===================
+from ultralytics import YOLO
+
+# Load pretrained YOLOv8 model
+yolo_model = YOLO('yolov8s.pt')
+
+# Train on custom dataset
+yolo_model.train(data='/content/drive/MyDrive/surface defect detection.v3i.yolov8-obb/data.yaml',
+                 epochs=5,
+                 imgsz=640,
+                 batch=16,
+                 project='defect_yolo_training',
+                 name='yolov8s_defects')
+
+# =================== 4. DETECT DEFECTS WITH YOLOv8 ===================
+model = YOLO('/content/defect_yolo_training/yolov8s_defects/weights/best.pt')
+
+test_img_path = '/content/drive/MyDrive/surface defect detection.v3i.yolov8-obb/test/images/20241220_170341_jpg.rf.02701e38f747d22c4edff32d7ecb03f5.jpg'
+results = model(test_img_path)
+results[0].show()
+
+# =================== 5. SWIN TRANSFORMER CLASSIFICATION ===================
+import torch
+import torch.nn as nn
+from torchvision import models, transforms
+from PIL import Image
+import matplotlib.pyplot as plt
+import numpy as np
+
+class HybridDefectClassifier(nn.Module):
+    def __init__(self, num_classes=4): # Changed _init_ to __init__
+        super().__init__()
+        self.swin = models.swin_t(weights='Swin_T_Weights.DEFAULT')
+        self.fc = nn.Linear(1000, num_classes)
+
+    def forward(self, x):
+        x = self.swin(x)
+        x = self.fc(x)
+        return x
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+classifier_model = HybridDefectClassifier(num_classes=4).to(device)
+
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225])
+])
+
+def classify_image(image_path, model):
+    img = Image.open(image_path).convert('RGB')
+    img_tensor = transform(img).unsqueeze(0).to(device)
+    model.eval()
+    with torch.no_grad():
+        output = model(img_tensor)
+        pred_class = torch.argmax(output, dim=1).item()
+    return pred_class, img_tensor
+
+# =================== 6. GRAD-CAM VISUALIZATION ===================
+def grad_cam(model, image_tensor):
+    image_tensor.requires_grad_()
+    output = model(image_tensor)
+    class_idx = output.argmax().item()
+    output[0, class_idx].backward()
+    gradients = image_tensor.grad
+    cam = torch.mean(gradients, dim=1).squeeze().cpu().detach().numpy()
+    cam = (cam - np.min(cam)) / (np.max(cam) - np.min(cam))  # Normalize
+    return cam, class_idx
+
+# =================== 7. EVALUATION METRICS ===================
+from sklearn.metrics import classification_report, confusion_matrix
+
+def evaluate_model(model, image_folder, true_labels):
+    y_pred = []
+    y_true = []
+    image_paths = sorted(os.listdir(image_folder))
+    for idx, img_file in enumerate(image_paths):
+        if not img_file.endswith(".jpg"): continue
+        img_path = os.path.join(image_folder, img_file)
+        pred, _ = classify_image(img_path, model)
+        y_pred.append(pred)
+        y_true.append(true_labels[idx])
+    print(classification_report(y_true, y_pred))
+    print("Confusion Matrix:\n", confusion_matrix(y_true, y_pred))
+
+# =================== 8. DEMO: CLASSIFICATION + GRAD-CAM ===================
+img_path = test_img_path
+pred_class, tensor = classify_image(img_path, classifier_model)
+heatmap, _ = grad_cam(classifier_model, tensor)
+
+plt.imshow(Image.open(img_path))
+plt.imshow(heatmap, alpha=0.5, cmap='jet')
+plt.title(f"Predicted Class: {pred_class}")
+plt.axis('off')
+plt.show()
