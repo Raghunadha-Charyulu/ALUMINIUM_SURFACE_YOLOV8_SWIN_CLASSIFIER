@@ -1,67 +1,82 @@
-# 🛠️ YOLOv8 + Swin Transformer for Surface Defect Detection & Classification
+# 🛠️ YOLOv8 + Swin Transformer: Surface Defect Detection & Classification
 
-This project implements a hybrid deep learning pipeline for **automated detection** and **classification** of aluminum surface defects using **YOLOv8** and **Swin Transformer**. It supports end-to-end functionality including training, detection, classification, Grad-CAM visualization, and performance evaluation.
+A deep learning pipeline for real-time detection and classification of surface defects in aluminum using YOLOv8 and Swin Transformer. The project integrates object detection, image classification, and model interpretability using Grad-CAM, targeted toward industrial quality control applications.
 
 ---
 
-## 📌 Table of Contents
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Installation](#installation)
-- [Dataset](#dataset)
-- [Usage](#usage)
-- [Model Training](#model-training)
-- [Prediction & Visualization](#prediction--visualization)
-- [Evaluation](#evaluation)
-- [Technologies Used](#technologies-used)
-- [Results](#results)
+## 📑 Table of Contents
+- [🔍 Introduction](#-introduction)
+- [🧠 Overview](#-overview)
+- [📐 Architecture](#-architecture)
+- [📦 Technologies, Setup & Results](#-technologies-setup--results)
+- [📄 License](#-license)
+
+---
+
+## 🔍 Introduction
+
+Surface defects like cracks, dents, and discoloration in aluminum parts are critical quality concerns in the manufacturing industry. Manual inspection is time-consuming and error-prone. This project aims to automate the detection and classification of such defects using an intelligent AI pipeline that combines both speed and accuracy.
 
 ---
 
 ## 🧠 Overview
 
-- **YOLOv8** is used to **detect defects** (cracks, dents, discoloration, etc.) in aluminum surface images.
-- **Swin Transformer** classifies the detected regions into **4 categories**: `crack`, `dent`, `discoloration`, and `others`.
-- **Grad-CAM** highlights the region influencing the classifier's decision.
-- Performance is assessed using **confusion matrix** and **classification report**.
+The project involves two stages:
+
+- **Defect Detection**: YOLOv8 is used to localize surface defects in input images.
+- **Defect Classification**: Detected regions are cropped and passed to a Swin Transformer-based classifier to determine the specific defect type (`crack`, `dent`, `discoloration`, or `others`).
+
+The pipeline also uses **Grad-CAM** to visualize attention maps, offering interpretability in the classification phase.
 
 ---
 
-## 📊 Architecture
+## 📐 Architecture
 
 ```plaintext
-           ┌────────────┐
-           │ Input Image│
-           └─────┬──────┘
-                 ↓
-        ┌──────────────┐
-        │  YOLOv8 Model│  ← Detect surface defect(s)
-        └─────┬────────┘
+           ┌───────────────┐
+           │ Input Image   │
+           └──────┬────────┘
+                  ↓
+           ┌───────────────┐
+           │ YOLOv8 Model  │  ← Detects defect regions
+           └──────┬────────┘
+                  ↓
+       ┌────────────────────┐
+       │ Cropped Defect ROIs│
+       └──────┬─────────────┘
               ↓
-      ┌─────────────────┐
-      │ Cropped Defect  │
-      │ Region (ROI)    │
-      └─────┬───────────┘
+     ┌────────────────────────┐
+     │ Swin Transformer Model │  ← Classifies defect type
+     └──────┬─────────────────┘
             ↓
-   ┌──────────────────────┐
-   │ Swin Transformer     │  ← Classify defect type
-   └────────┬─────────────┘
-            ↓
-     ┌────────────┐
-     │ Grad-CAM   │  ← Visual explanation
-     └────┬───────┘
-          ↓
-  ┌────────────────────┐
-  │ Final Output: Class│
-  │ + Heatmap Overlay  │
-  └────────────────────┘
+      ┌──────────────┐
+      │ Grad-CAM Map │  ← Visual explanation of decisions
+      └──────┬───────┘
+             ↓
+    ┌────────────────────┐
+    │ Final Output Result│
+    └────────────────────┘
 
-# Clone the repository
-git clone https://github.com/yourusername/yolov8-swin-defect-classifier.git
-cd yolov8-swin-defect-classifier
+### 🔧 Pipeline Description
 
-# Install dependencies (Colab/Local)
-pip install ultralytics torch torchvision matplotlib
+1. **YOLOv8 Detection**  
+   YOLOv8 is used to detect and localize surface defects in aluminum images. It outputs bounding boxes that surround the defective regions within an image.
+
+2. **Region of Interest (ROI) Extraction**  
+   Using the detected bounding boxes, the system crops out defect-specific regions (ROIs) from the full image. These cropped patches focus only on the area of concern, improving classification performance.
+
+3. **Swin Transformer Classification**  
+   The extracted ROI images are passed through a Swin Transformer classifier, which leverages self-attention mechanisms and hierarchical structure to identify the defect type (e.g., crack, dent, discoloration, or other).
+
+4. **Grad-CAM Visualization**  
+   Grad-CAM is applied to highlight the regions within the ROI that influenced the classifier’s decision. This provides visual interpretability and trust in model predictions.
+
+5. **Output & Evaluation**  
+   The system returns annotated images, predicted defect classes, and visual heatmaps. It also includes classification metrics and confusion matrices to evaluate performance.
+
+> This architecture ensures a high degree of accuracy in detection, fine-grained classification, and interpretability—making it suitable for quality control pipelines in manufacturing.
+
+---
 
 ## 🧰 Technologies Used
 
@@ -75,6 +90,8 @@ This project combines the power of cutting-edge deep learning models for real-ti
 - **Grad-CAM** – For generating heatmaps to visualize the influential areas during classification.
 - **Scikit-learn** – For calculating performance metrics like confusion matrix and classification report.
 - **Google Colab** – Used as the development and training environment with GPU acceleration.
+
+---
 
 ## 📈 Results
 
@@ -91,5 +108,7 @@ The model was trained and evaluated on an aluminum surface defect dataset. Here 
 
 The results demonstrate the pipeline’s robustness in not only detecting defects accurately with YOLOv8 but also classifying them effectively using Swin Transformer with interpretable Grad-CAM visualizations.
 
+---
 
 
+Let me know if you’d like this exported as a `.md` file, or if you'd like me to generate any supporting files like `requirements.txt`, `.gitignore`, or `main.ipynb`.
