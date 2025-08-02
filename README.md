@@ -51,3 +51,91 @@ v v
 - **Cropped Regions**: The defect-specific regions are cropped for classification.
 - **Swin Transformer**: Classifies each region into categories like crack, dent, discoloration, or others.
 - **Grad-CAM**: Generates visual explanations for model predictions.
+
+---
+
+## 🧰 Technologies & Dataset
+
+### 🔧 Technologies Used
+
+- **Python** – Core programming language
+- **YOLOv8 (Ultralytics)** – For defect detection using oriented bounding boxes
+- **Swin Transformer (TorchVision)** – For classifying cropped defect regions
+- **Grad-CAM** – For visualizing important regions contributing to classification
+- **PyTorch & TorchVision** – Deep learning model implementation and training
+- **Google Colab** – Cloud-based training and experimentation environment
+- **Matplotlib & PIL** – Image processing and visualization
+- **Scikit-learn** – For computing evaluation metrics (Precision, Recall, F1-Score)
+
+---
+
+### 📁 Dataset Requirements
+
+- **Dataset Source**: Exported from [Roboflow](https://roboflow.com/)
+- **Format**: YOLOv8 Oriented Bounding Box (OBB)
+- **Structure**:
+  - `train/` – Training images and labels
+  - `valid/` – Validation images and labels
+  - `test/` – Testing images and labels
+  - `data.yaml` – Contains class names and dataset paths
+- **Classes**:
+  - `crack`
+  - `dent`
+  - `discoloration`
+  - `others`
+
+---
+
+## 📥 Repository Cloning & Setup
+
+### 🔧 Clone the Repository
+
+git clone https://github.com/your-username/aluminum-defect-detector.git
+cd aluminum-defect-detector
+
+## 📦 Dependencies
+
+Make sure the following libraries are installed to run the project successfully:
+
+### 🧪 Core Libraries
+
+- `torch` – For model building and training
+- `torchvision` – For pretrained models like Swin Transformer
+- `ultralytics` – For YOLOv8 detection
+- `numpy` – For numerical operations
+- `matplotlib` – For visualizations
+- `Pillow (PIL)` – For image loading and processing
+- `scikit-learn` – For evaluation metrics (Precision, Recall, F1-Score)
+
+### 🛠️ Installation
+
+You can install all dependencies using:
+
+pip install torch torchvision ultralytics matplotlib scikit-learn pillow
+
+---
+
+## 📊 Results
+
+The following table summarizes the performance of the detection and classification pipeline:
+
+| Component         | Metric     | Value  |
+|------------------|------------|--------|
+| YOLOv8 Detection | mAP@0.5    | 92%    |
+| Swin Transformer | Accuracy   | 89%    |
+|                  | F1-Score   | 88.7%  |
+|                  | Precision  | 90.1%  |
+|                  | Recall     | 87.2%  |
+
+### 📌 Observations
+
+- The **YOLOv8** model achieved high mean average precision, indicating robust defect localization performance.
+- The **Swin Transformer** classifier performed well on fine-grained defect classification, especially on cropped regions.
+- **Grad-CAM** visualizations confirmed that the model focuses on relevant defect features during prediction.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+
